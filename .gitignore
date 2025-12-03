@@ -1,0 +1,41 @@
+.env
+*.pyc
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Environment
+venv/
+.venv/
+ENV/
+env/
+.env
+.env.*
+
+# IDEs
+.idea/
+.vscode/
+.DS_Store
+
+# Checkmate outputs
+runs/
+.checkmate/
+*.log
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+test_cache/
+runs/
+*.log
+.DS_Store
+checkpoints/

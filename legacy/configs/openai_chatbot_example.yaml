@@ -1,0 +1,21 @@
+# Example pilot config for OpenAI chatbot red-teaming
+
+target:
+  type: "openai_compatible"
+  name: "gpt4-chatbot"
+  model: "gpt-4o-mini"
+  # OpenAI API key should be in OPENAI_API_KEY environment variable
+
+profile:
+  preset: "chatbot-basic"
+
+campaign:
+  max_requests: 100
+  max_rps: 5.0
+  concurrent_requests: 5
+  use_llm_judge: false
+  generations: 3
+
+output:
+  run_id: "gpt4-chatbot-test"
+  results_dir: "runs"

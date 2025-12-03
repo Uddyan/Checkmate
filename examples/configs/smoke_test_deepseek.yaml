@@ -1,0 +1,18 @@
+target:
+  type: "http_local"
+  name: "deepseek-local"
+  base_url: "http://192.168.1.231:1234"
+  model_name: "deepseek/deepseek-r1-0528-qwen3-8b"
+
+profile:
+  preset: "smoke-test"
+
+campaign:
+  max_requests: 10
+  max_rps: 2
+  concurrent_requests: 1
+  generations: 1
+
+output:
+  run_id: "smoke-test-deepseek"
+  results_dir: "runs/smoke-test-deepseek"

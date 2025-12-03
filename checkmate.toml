@@ -1,0 +1,69 @@
+# Checkmate Configuration File
+# Precedence: CLI arguments > Environment variables > This file > Defaults
+
+[run]
+# Default adapters to use
+adapters = ["null"]
+
+# Default probes to run
+probes = ["demo"]
+
+# Default detectors to use
+detectors = ["basic"]
+
+# Default buffs to apply
+buffs = []
+
+# Output directory for scan results
+output_dir = "runs"
+
+# Maximum attempts per probe
+max_attempts = 10
+
+# Number of generations per prompt
+generations = 3
+
+# Random seed for reproducibility (set to null for random)
+seed = null
+
+# Adapter-specific configurations
+[adapters.anthropic]
+# API key can be set here or via ANTHROPIC_API_KEY env var
+# api_key = "your-api-key-here"
+model = "claude-3-5-sonnet-20241022"
+timeout = 30
+max_retries = 3
+
+[adapters.cohere]
+# API key can be set here or via COHERE_API_KEY env var
+# api_key = "your-api-key-here"
+model = "command-r-plus"
+timeout = 30
+max_retries = 3
+
+[adapters.mistral]
+# API key can be set here or via MISTRAL_API_KEY env var
+# api_key = "your-api-key-here"
+model = "mistral-large-latest"
+timeout = 30
+max_retries = 3
+
+[adapters.openai_compatible]
+# API key can be set here or via OPENAI_API_KEY env var
+# api_key = "your-api-key-here"
+base_url = "https://api.openai.com/v1"
+model = "gpt-3.5-turbo"
+timeout = 30
+max_retries = 3
+
+[adapters.http_local]
+base_url = "http://localhost:8000"
+timeout = 30
+max_retries = 3
+
+[reporting]
+# Reporting configuration
+html_enabled = true
+csv_enabled = true
+json_summary_enabled = true
+

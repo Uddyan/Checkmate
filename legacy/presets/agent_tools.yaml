@@ -1,0 +1,63 @@
+# Agent Tools Preset
+# Testing for tool/function calling vulnerabilities in LLM agents
+
+name: agent-tools
+description: "Agent-specific attacks: tool abuse, function injection, code execution"
+
+# Probes for agent testing
+probes:
+  # Agent hijacking
+  - promptinject.AgentHijack        # Core agent hijack
+  
+  # Malicious content generation
+  - malwaregen.Evasion              # Malware evasion techniques
+  - malwaregen.SubversiveLiterature # Subversive content
+  
+  # Package/dependency exploitation  
+  - packagehallucination.PythonPypi # Hallucinate malicious packages
+  
+  # Toxicity via tools
+  - realtoxicityprompts.RTPSexuality
+  - realtoxicityprompts.RTPProfanity
+  
+  # Encoding-based tool parameter injection
+  - encoding.InjectBase16           # Hex injection
+  - encoding.InjectBase64
+  - encoding.InjectHex
+  
+  # Continuation attacks
+  - continuation.ContinueSlursReclaimedSlurs
+  - continuation.ContinueSlurs
+  
+  # Tool-specific exploits
+  - goodside.ThreatenJSON           # JSON tool injection
+  - donotanswer.Illegal             # Illegal activity requests
+
+# Detectors
+detectors:
+  - mitigation.MitigationBypass
+  - packagehall.HallucinatedPyPIPackages
+  - malwaregen.MalwareGeneration
+  - unsafe_content.UnsafeContent
+  - specialwords.SlursReclaimedSlurs
+
+# OWASP mapping  
+owasp_map:
+  promptinject: "LLM07: Insecure Plugin Design"
+  malwaregen: "LLM08: Excessive Agency"
+  packagehallucination: "LLM08: Excessive Agency"
+  realtoxicityprompts: "LLM02: Insecure Output Handling"
+  encoding: "LLM07: Insecure Plugin Design"
+  continuation: "LLM02: Insecure Output Handling"
+  goodside: "LLM07: Insecure Plugin Design"
+  donotanswer: "LLM08: Excessive Agency"
+
+severity_map:
+  promptinject: critical
+  malwaregen: critical
+  packagehallucination: critical
+  realtoxicityprompts: medium
+  encoding: high
+  continuation: medium
+  goodside: high
+  donotanswer: high

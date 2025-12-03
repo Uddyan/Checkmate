@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkmate LLM Security Assessment - {{ summary.run_id }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .header .meta {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .risk-score {
+            text-align: center;
+            padding: 40px;
+            margin-bottom: 40px;
+            border-radius: 8px;
+        }
+        
+        .risk-score.critical { background: #fee; border: 2px solid #e53e3e; }
+        .risk-score.high { background: #fef5e7; border: 2px solid #f39c12; }
+        .risk-score.medium { background: #fff9e6; border: 2px solid #f1c40f; }
+        .risk-score.low { background: #e8f8f5; border: 2px solid #1abc9c; }
+        
+        .score-number {
+            font-size: 72px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        
+        .score-number.critical { color: #e53e3e; }
+        .score-number.high { color: #f39c12; }
+        .score-number.medium { color: #f1c40f; }
+        .score-number.low { color: #1abc9c; }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .finding-card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        
+        .finding-card.critical { border-left-color: #e53e3e; }
+        .finding-card.high { border-left-color: #f39c12; }
+        .finding-card.medium { border-left-color: #f1c40f; }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .badge.critical { background: #fee; color: #e53e3e; }
+        .badge.high { background: #fef5e7; color: #f39c12; }
+        .badge.medium { background: #fff9e6; color: #f1c40f; }
+        .badge.low { background: #e8f8f5; color: #1abc9c; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .key-findings {
+            background: #fff9e6;
+            border: 2px solid #f1c40f;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .key-findings h3 {
+            color: #e67e22;
+            margin-bottom: 15px;
+        }
+        
+        .key-findings ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .key-findings li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        .key-findings li:before {
+            content: "⚠️";
+            position: absolute;
+            left: 0;
+        }
+        
+        .footer {
+            background: #f8f9fa;
+            padding: 20px 40px;
+            border-top: 1px solid #ddd;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Checkmate LLM Security Assessment</h1>
+            <div class="meta">
+                <strong>Target:</strong> {{ summary.get('target_name', 'Unknown') }} | 
+                <strong>Model:</strong> {{ summary.get('model_name', 'Unknown') }} | 
+                <strong>Run ID:</strong> {{ summary.run_id }}<br>
+                <strong>Date:</strong> {{ summary.start_time }}
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- Risk Score Section -->
+            <div class="risk-score {{ risk_level }}">
+                <h2>Overall Risk Score</h2>
+                <div class="score-number {{ risk_level }}">{{ summary.risk_score }}/100</div>
+                <p><strong>{{ risk_message }}</strong></p>
+                <p style="margin-top: 10px; opacity: 0.8;">
+                    {{ summary.total_detections }} vulnerabilities detected across {{ summary.get('owasp_breakdown', [])|length }} OWASP categories
+                </p>
+            </div>
+            
+            <!-- Key Findings -->
+            {% if key_findings %}
+            <div class="key-findings">
+                <h3>🎯 Executive Summary: Key Findings</h3>
+                <ul>
+                    {% for finding in key_findings %}
+                    <li>{{ finding }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            
+            <!-- OWASP Breakdown -->
+            <div class="section">
+                <h2>OWASP LLM Top-10 Breakdown</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>OWASP Category</th>
+                            <th>Detections</th>
+                            <th>Affected Probes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for category in summary.get('owasp_breakdown', []) %}
+                        <tr>
+                            <td><strong>{{ category.category }}</strong></td>
+                            <td>{{ category.count }}</td>
+                            <td>{{ category.probes|length }} probe(s)</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Severity Distribution -->
+            <div class="section">
+                <h2>Severity Distribution</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Severity</th>
+                            <th>Count</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for severity, count in summary.get('severity_breakdown', {}).items() %}
+                        {% if count > 0 %}
+                        <tr>
+                            <td><span class="badge {{ severity }}">{{ severity }}</span></td>
+                            <td>{{ count }}</td>
+                            <td>{{ "%.1f"|format((count / summary.total_detections * 100) if summary.total_detections > 0 else 0) }}%</td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Detailed Findings -->
+            <div class="section">
+                <h2>Detailed Vulnerability Findings</h2>
+                {% for finding in findings.get('findings', []) %}
+                <div class="finding-card {{ finding.severity }}">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                        <div>
+                            <strong>{{ finding.probe }}</strong>
+                            <br><small style="color: #666;">{{ finding.owasp_category }}</small>
+                        </div>
+                        <span class="badge {{ finding.severity }}">{{ finding.severity }}</span>
+                    </div>
+                    <div>
+                        <strong>Detections:</strong> {{ finding.count }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Technical Details -->
+            <div class="section">
+                <h2>📊 Campaign Statistics</h2>
+                <table>
+                    <tr>
+                        <td><strong>Total Attack Attempts:</strong></td>
+                        <td>{{ summary.get('total_attempts', 0) }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Probes Executed:</strong></td>
+                        <td>{{ summary.get('total_probes', 0) }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Duration:</strong></td>
+                        <td>{{ duration_str }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Preset:</strong></td>
+                        <td>{{ summary.get('preset', 'unknown') }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="footer">
+            Generated by <strong>Checkmate LLM Security Scanner</strong> | 
+            Full details: <code>summary.json</code> and <code>findings.json</code>
+        </div>
+    </div>
+</body>
+</html>

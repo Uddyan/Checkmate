@@ -1,0 +1,21 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Python files
+*.py text eol=lf
+
+# Shell scripts
+*.sh text eol=lf
+
+# Configuration files
+*.{toml,yaml,yml,json} text eol=lf
+
+# Documentation
+*.{md,rst,txt} text eol=lf
+
+# Exclude binary files
+*.{png,jpg,jpeg,gif,ico,pdf,woff,woff2,ttf,eot,otf} binary
+
+# Data files
+*.{pth,pkl,pickle} binary
+

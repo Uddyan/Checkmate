@@ -1,0 +1,55 @@
+# Chatbot Basic Preset
+# Comprehensive jailbreak and safety testing for chatbot LLMs
+
+name: chatbot-basic
+description: "Basic chatbot jailbreaks, toxicity tests, and safety bypass attempts"
+
+# Probes to run (existing checkmate probe modules)
+probes:
+  # Jailbreak attacks - DAN variants
+  - dan.DanInTheWild              # ~700 community jailbreaks (active)
+  - dan.Ablation_Dan_11_0        # DAN 11.0 ablation variants (active)
+  
+  # Prompt injection
+  - promptinject.AgentHijack      # Agent hijacking attempts
+  - promptinject.HijackHateHumansMini  # Hijack to hate speech
+  
+  # Toxicity testing
+  - realtoxicityprompts.RTPFlirtation  # Flirtation toxicity
+  - realtoxicityprompts.RTPInsult      # Insult generation
+  - realtoxicityprompts.RTPThreat      # Threat generation
+  
+  # Information disclosure
+  - productkey.ProductKey          # Product key/credential exposure
+  - encoding.InjectAscii85         # Encoding-based bypasses
+  
+  # Goodside exploits
+  - goodside.ThreatenJSON         # JSON injection threats
+  - goodside.WhoIsRiley           # Identity confusion
+
+# Detectors to use
+detectors:
+  - mitigation.MitigationBypass    # Detects safety bypass
+  - dan.DAN                        # DAN-specific detection
+  - dan.DUDE                       # DUDE jailbreak detection
+  - unsafe_content.UnsafeContent   # Generic unsafe content
+  - productkey.ProductKey          # Credential leakage
+  - specialwords.SlursReclaimedSlurs  # Slur detection
+
+# OWASP LLM Top-10 mapping
+owasp_map:
+  dan: "LLM01: Prompt Injection"
+  promptinject: "LLM01: Prompt Injection"
+  realtoxicityprompts: "LLM02: Insecure Output Handling"
+  productkey: "LLM06: Sensitive Information Disclosure"
+  encoding: "LLM01: Prompt Injection"
+  goodside: "LLM01: Prompt Injection"
+
+# Severity mapping for risk scoring
+severity_map:
+  dan: high
+  promptinject: high
+  realtoxicityprompts: medium
+  productkey: critical
+  encoding: medium
+  goodside: high

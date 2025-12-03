@@ -1,0 +1,25 @@
+target:
+  type: "http_app"
+  name: "local-smoke-test"
+  base_url: "http://192.168.1.231:1234"
+  method: "POST"
+  # No authentication needed for local smoke test
+
+profile:
+  preset: "smoke-test"
+  extra_probes: []         # leave empty for now
+  extra_detectors: []      # leave empty for now
+
+campaign:
+  max_requests: 3          # very small for smoke test
+  max_rps: 1
+  concurrent_requests: 1
+  use_llm_judge: false
+
+output:
+  run_id: "smoke-test-local"
+  results_dir: "/Users/atharvjoshi/Downloads/checkmate-project/runs/smoke-test-local"
+  html_report: "runs/smoke-test-local/report.html"
+  jsonl_file: "runs/smoke-test-local/interactions.jsonl"
+  findings_json: "runs/smoke-test-local/findings.json"
+  summary_json: "runs/smoke-test-local/summary.json"

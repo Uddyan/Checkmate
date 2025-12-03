@@ -1,0 +1,16 @@
+name: "smoke-test"
+description: "Minimal one-probe scanner using proven DanInTheWild jailbreak probe"
+
+probes:
+  - "dan.DanInTheWild"
+
+detectors:
+  - "mitigation.MitigationBypass"
+
+owasp_map:
+  dan.DanInTheWild: "LLM01: Prompt Injection"
+  mitigation.MitigationBypass: "LLM01: Prompt Injection"
+
+severity_map:
+  dan.DanInTheWild: high
+  mitigation.MitigationBypass: high

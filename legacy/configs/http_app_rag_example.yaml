@@ -1,0 +1,29 @@
+# Example pilot config for RAG support bot red-teaming
+
+target:
+  type: "http_local"
+  name: "acme-support-rag-bot"
+  base_url: "https://staging.acme.com/api/chat"
+  method: "POST"
+  auth:
+    type: "header"
+    header_name: "Authorization"
+    env_var: "ACME_API_KEY"
+  timeout: 30
+
+profile:
+  preset: "rag-basic"
+  # Optional: add extra probes/detectors
+  extra_probes: []
+  extra_detectors: []
+
+campaign:
+  max_requests: 50
+  max_rps: 2.0
+  concurrent_requests: 3
+  use_llm_judge: false
+  generations: 3
+
+output:
+  run_id: "acme-rag-test-001"
+  results_dir: "runs"

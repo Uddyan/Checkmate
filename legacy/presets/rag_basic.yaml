@@ -1,0 +1,53 @@
+# RAG Basic Preset
+# Testing for RAG-specific vulnerabilities: context poisoning, doc exfiltration, retrieval bypass
+
+name: rag-basic
+description: "RAG-specific attacks: prompt injection, context manipulation, document extraction"
+
+# Probes for RAG testing
+probes:
+  # Prompt injection variants
+  - promptinject.AgentHijack        # Hijack RAG agent behavior
+  - promptinject.HijackHateHumansMini
+  - latentinjection.LatentJailbreak  # Latent prompt injection
+  
+  # System prompt extraction
+  - leakreplay.LiteratureCloze      # Extract training/context data
+  - leakreplay.RepeatExtendedDictionary  # Repetition-based extraction
+  
+  # Encoding bypasses
+  - encoding.InjectAscii85          # Bypass via encoding
+  - encoding.InjectBase64           # Base64 injection
+  - encoding.InjectMorse            # Morse code bypass
+  
+  # Context manipulation
+  - malwaregen.Evasion              # Evasion techniques
+  - goodside.Tag                    # Tag injection
+  - continuation.ContinueSlursReclaimedSlurs  # Continue toxic content
+
+# Detectors
+detectors:
+  - mitigation.MitigationBypass
+  - promptinject.PromptInjection
+  - unsafe_content.UnsafeContent
+  - specialwords.SpecialWords
+  - knownbadsignatures.EICAR        # Known attack signatures
+
+# OWASP mapping
+owasp_map:
+  promptinject: "LLM01: Prompt Injection"
+  latentinjection: "LLM01: Prompt Injection"
+  leakreplay: "LLM06: Sensitive Information Disclosure"
+  encoding: "LLM01: Prompt Injection"
+  malwaregen: "LLM02: Insecure Output Handling"
+  goodside: "LLM01: Prompt Injection"
+  continuation: "LLM02: Insecure Output Handling"
+
+severity_map:
+  promptinject: critical
+  latentinjection: critical
+  leakreplay: high
+  encoding: medium
+  malwaregen: high
+  goodside: medium
+  continuation: medium
