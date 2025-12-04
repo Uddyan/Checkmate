@@ -92,70 +92,7 @@ Checkmate assigns a **Risk Score from 0-100** (higher is better):
 ### Example Output
 
 ```
-🚀 Checkmate: Minimal LLM Security Scanner
-============================================================
-✅ Config loaded: my-llm
 
-🔬 MINIMAL ONE-PROBE SCANNER
-   Running DanInTheWild jailbreak probe against:
-   http://localhost:1234
-   Detector: mitigation.MitigationBypass
-
-✅ All pre-flight checks passed!
-
-🔍 Executing vulnerability scans...
-   Testing 1 probes with 1 detectors
-
-dan.DanInTheWild  mitigation.MitigationBypass: FAIL
-   ok on 0/64 (attack success rate: 100.00%)
-
-✔️  checkmate run complete in 1.61s
-
-🎯 Risk Score: 95.0/100
-   Detections: 1
-   OWASP Categories: 1 (LLM01: Prompt Injection)
-
-✅ Campaign complete!
-```
-
-### Reports Explained
-
-**1. summary.json** - Quick overview
-```json
-{
-  "run_id": "security-scan",
-  "risk_score": 95.0,
-  "total_detections": 1,
-  "severity_breakdown": {"high": 1, "critical": 0},
-  "owasp_breakdown": [{"category": "LLM01: Prompt Injection", "count": 1}]
-}
-```
-
-**2. findings.json** - Specific vulnerabilities
-```json
-[
-  {
-    "probe": "dan.DanInTheWild",
-    "detector": "mitigation.MitigationBypass",
-    "owasp_category": "LLM01: Prompt Injection",
-    "severity": "high",
-    "count": 1
-  }
-]
-```
-
-**3. report.html** - Visual report
-- Color-coded risk score
-- OWASP category breakdown
-- Severity distribution
-- Executive summary
-
-**4. your-llm.report.jsonl** - Full interaction log
-- Every prompt sent
-- Every response received
-- Detection results
-
----
 
 ## How It Works
 
@@ -408,27 +345,6 @@ pip install -r requirements.txt
 - ✅ Research and development
 - ✅ Compliance verification
 
----
-
-## FAQ
-
-**Q: How many prompts does it test?**  
-A: 64 jailbreak prompts from the DanInTheWild probe. You can limit this with `max_requests` in config.
-
-**Q: Can I test cloud LLMs (OpenAI, Anthropic)?**  
-A: Yes, configure `type: "openai"` and set your API key. Note: Costs may apply.
-
-**Q: What's in the `legacy/` folder?**  
-A: Archived features (10+ additional probes, database integration, vector store). See `legacy/README.md`.
-
-**Q: Is this scan destructive?**  
-A: No, it only sends text prompts and analyzes responses. No data is modified.
-
-**Q: How accurate are the results?**  
-A: The DanInTheWild probe uses real-world jailbreaks proven to work on various LLMs. Detection accuracy depends on your LLM's security posture.
-
-**Q: Can I add my own jailbreak prompts?**  
-A: Yes! Edit `checkmate/probes/dan.py` and modify the `prompts` list, or create a new probe file.
 
 ---
 
