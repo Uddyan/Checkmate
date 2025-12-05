@@ -9,7 +9,6 @@ A lightweight, focused security scanner for testing Large Language Models agains
 Checkmate is a **minimal one-probe scanner** designed to test LLM security using proven jailbreak techniques. It runs a single attack vector (DanInTheWild) with 64 different jailbreak prompts against your target LLM and generates comprehensive security reports.
 
 **Key Features:**
-- ⚡ **Fast** - Completes security scan in ~2 seconds
 - 🎯 **Focused** - One proven attack method (DanInTheWild jailbreaks)
 - 📊 **Professional Reports** - JSON and HTML output with risk scores
 - 🔌 **Easy Setup** - Works with local LLMs (LM Studio, Ollama, etc.)
