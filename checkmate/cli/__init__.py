@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Checkmate entry point."""
+"""Checkmate CLI module."""
 
 from checkmate.cli.main import main
 
-if __name__ == "__main__":
-    main()
+__all__ = ["main"]

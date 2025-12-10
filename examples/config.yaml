@@ -1,0 +1,28 @@
+# Checkmate Example Configuration
+# ================================
+# This config runs a smoke test probe against an OpenAI-compatible endpoint.
+
+target:
+  adapter: openai_compatible
+  endpoint: http://localhost:1234/v1  # LM Studio, Ollama, or vLLM
+  model: local-model
+  # api_key: your-api-key  # Uncomment if needed
+
+probes:
+  - name: smoke_test
+    enabled: true
+
+detectors:
+  - name: mitigation_bypass
+    enabled: true
+    threshold: 0.5
+
+output:
+  output_dir: ./results
+  formats:
+    - json
+    - html
+
+system:
+  parallel: false
+  verbose: false
