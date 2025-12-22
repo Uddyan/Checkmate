@@ -42,7 +42,18 @@ def list_probes() -> Dict[str, str]:
 # Register built-in probes
 def _register_builtins():
     from checkmate.probes.smoke_probe import SmokeProbe
+    from checkmate.probes.prompt_injection import PromptInjectionProbe
+    from checkmate.probes.data_exfil import DataExfilProbe
+    from checkmate.probes.context_override import ContextOverrideProbe
+    from checkmate.probes.agent_abuse import AgentAbuseProbe
+    from checkmate.probes.rag_injection import RAGInjectionProbe
+    
     register_probe("smoke_test", SmokeProbe)
+    register_probe("prompt_injection", PromptInjectionProbe)
+    register_probe("data_exfil", DataExfilProbe)
+    register_probe("context_override", ContextOverrideProbe)
+    register_probe("agent_abuse", AgentAbuseProbe)
+    register_probe("rag_injection", RAGInjectionProbe)
 
 
 _register_builtins()

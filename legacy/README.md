@@ -60,20 +60,22 @@ Archived test shell scripts and experimental code.
 
 ---
 
-## Why Archived?
+## Current Status
 
-The minimal Checkmate scanner focuses on **simplicity and clarity**:
+The minimal Checkmate scanner now includes:
 
-**✅ ONE probe:** `SmokeTestProbe` (5 jailbreak prompts)  
-**✅ ONE detector:** `MitigationBypass`  
-**✅ ONE preset:** `smoke-test`  
-**✅ ONE config:** `smoke_test_deepseek.yaml`  
-**✅ ONE target:** DeepSeek local server  
+**✅ 3 Detectors:**
+- `MitigationBypassDetector` - Jailbreak detection
+- `DataLeakDetector` - Secrets/PII detection  
+- `ToxicityDetector` - Harmful content detection
 
-This makes the codebase:
-- **Simple** - Easy to understand in < 30 minutes
-- **Focused** - One proven attack path
-- **Extensible** - Easy to add features later
+**✅ 2 Profiles:**
+- `smoke_test` - Quick test with mitigation detector only
+- `chatbot_basic` - Full assessment with all 3 detectors
+
+**Note:** Key modules (`pilot_config.py`, `presets/`, `scoring/`, `reporting/`) have been moved from `legacy/garak_removed/` to the main `checkmate/` directory.
+
+This directory now only contains **truly archived** code that is not part of the current product
 
 ---
 

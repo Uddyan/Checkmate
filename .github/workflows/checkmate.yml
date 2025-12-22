@@ -1,0 +1,150 @@
+# Checkmate LLM Security Scanner - GitHub Actions Workflow
+# This workflow runs Checkmate security scans against your LLM application
+# and fails the pipeline if security thresholds are not met.
+
+name: Checkmate Security Scan
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: 'Target LLM endpoint URL'
+        required: true
+        type: string
+      min_risk_score:
+        description: 'Minimum acceptable risk score (0-100)'
+        required: false
+        default: '80'
+        type: string
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install Checkmate
+        run: |
+          pip install --upgrade pip
+          pip install checkmate
+          # Or install from source if checkmate isn't on PyPI:
+          # pip install -e .
+      
+      - name: Create scan config
+        run: |
+          cat > checkmate-ci.yaml << 'EOF'
+          target:
+            adapter: openai_compatible
+            endpoint: ${{ github.event.inputs.target_url || secrets.LLM_ENDPOINT }}
+            model: ${{ secrets.LLM_MODEL || 'default' }}
+            api_key: ${{ secrets.LLM_API_KEY }}
+          
+          probes:
+            - name: smoke_test
+              enabled: true
+            - name: prompt_injection
+              enabled: true
+            - name: data_exfil
+              enabled: true
+          
+          detectors:
+            - name: mitigation_bypass
+              enabled: true
+              threshold: 0.5
+            - name: data_leak
+              enabled: true
+              threshold: 0.5
+            - name: toxicity
+              enabled: true
+              threshold: 0.5
+          
+          output:
+            output_dir: ./checkmate-results
+            formats:
+              - json
+              - html
+          EOF
+      
+      - name: Run Checkmate scan
+        id: scan
+        run: |
+          checkmate scan \
+            --config checkmate-ci.yaml \
+            --profile ci-scan \
+            --min-risk-score ${{ github.event.inputs.min_risk_score || '80' }} \
+            --max-critical 0
+        continue-on-error: true
+      
+      - name: Upload scan results
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkmate-report
+          path: ./checkmate-results/
+          retention-days: 30
+      
+      - name: Check scan result
+        if: steps.scan.outcome == 'failure'
+        run: |
+          echo "❌ Security scan failed! Risk score below threshold or critical findings detected."
+          echo "Check the uploaded artifacts for the full report."
+          exit 1
+      
+      - name: Report success
+        if: steps.scan.outcome == 'success'
+        run: |
+          echo "✅ Security scan passed!"
+          echo "Check the uploaded artifacts for the full report."
+
+  # Optional: Post comment on PR with scan results
+  comment-on-pr:
+    needs: security-scan
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Download scan results
+        uses: actions/download-artifact@v4
+        with:
+          name: checkmate-report
+          path: ./results
+      
+      - name: Parse results and comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const results = JSON.parse(fs.readFileSync('./results/results.json', 'utf8'));
+            const summary = results.summary;
+            const riskScore = Math.round((1 - summary.risk_score) * 100);
+            
+            const body = `## 🛡️ Checkmate Security Scan Results
+            
+            | Metric | Value |
+            |--------|-------|
+            | Risk Score | ${riskScore}/100 |
+            | Total Prompts | ${summary.total_prompts} |
+            | Flagged | ${summary.flagged_prompts} |
+            | Critical | ${summary.severity_breakdown.critical} |
+            | High | ${summary.severity_breakdown.high} |
+            
+            [View full report](${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID})`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });

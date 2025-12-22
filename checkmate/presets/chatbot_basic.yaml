@@ -1,0 +1,25 @@
+# Chatbot Basic Profile
+# Comprehensive chatbot security assessment with multiple probes and all 3 detectors
+
+name: chatbot_basic
+description: Comprehensive chatbot security assessment covering jailbreaks, prompt injection, and data leakage
+
+probes:
+  - smoke_test          # DanInTheWild - Jailbreak/DAN-style attacks
+  - prompt_injection    # Instruction override attacks
+  - data_exfil          # System prompt extraction and data leakage
+
+detectors:
+  - mitigation_bypass   # Detects successful jailbreaks
+  - data_leak           # Flags leaked secrets/PII
+  - toxicity            # Identifies harmful content
+
+owasp_map:
+  smoke_test: "LLM01: Prompt Injection"
+  prompt_injection: "LLM01: Prompt Injection"
+  data_exfil: "LLM02: Sensitive Information Disclosure"
+
+severity_map:
+  smoke_test: high
+  prompt_injection: high
+  data_exfil: high

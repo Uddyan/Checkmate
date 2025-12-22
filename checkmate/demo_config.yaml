@@ -1,0 +1,21 @@
+# Demo Mode Configuration
+# Used by `checkmate demo` command - DO NOT MODIFY
+
+profile:
+  preset: chatbot_quick
+
+target:
+  type: http_local
+  name: "Vulnerable Demo Model"
+  base_url: "http://127.0.0.1:19999"
+  model_name: "vulnerable-demo-model"
+
+campaign:
+  max_requests: 20
+  concurrent_requests: 1
+  max_rps: 10
+  generations: 1
+
+output:
+  run_id: "demo-scan"
+  results_dir: "runs/demo-scan"

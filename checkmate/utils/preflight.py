@@ -134,20 +134,26 @@ def run_pre_flight_checks(pilot_config) -> Dict[str, any]:
     return results
 
 
-def print_pre_flight_results(results: Dict):
-    """Print pre-flight check results in a user-friendly format"""
-    print("\n🔍 Pre-Flight Checks")
-    print("=" * 60)
+def print_pre_flight_results(results: Dict, quiet: bool = False):
+    """Print pre-flight check results in a user-friendly format
     
-    for check in results['checks']:
-        status = "✅" if check['passed'] else "❌"
-        print(f"{status} {check['name']}: {check['message']}")
-    
-    print("=" * 60)
-    
-    if results['all_passed']:
-        print("✅ All pre-flight checks passed!\n")
-    else:
-        print("❌ Some pre-flight checks failed. Please fix the issues above.\n")
+    Args:
+        results: Pre-flight check results dict
+        quiet: If True, suppress output (still return pass/fail)
+    """
+    if not quiet:
+        print("\n🔍 Pre-Flight Checks")
+        print("=" * 60)
+        
+        for check in results['checks']:
+            status = "✅" if check['passed'] else "❌"
+            print(f"{status} {check['name']}: {check['message']}")
+        
+        print("=" * 60)
+        
+        if results['all_passed']:
+            print("✅ All pre-flight checks passed!\n")
+        else:
+            print("❌ Some pre-flight checks failed. Please fix the issues above.\n")
     
     return results['all_passed']

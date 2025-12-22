@@ -1,78 +1,162 @@
-# Checkmate: Minimal LLM Security Scanner
+# Checkmate: LLM Security Scanner
 
-A lightweight, focused security scanner for testing Large Language Models against jailbreak and prompt injection attacks.
+A lightweight security scanner for testing Large Language Models against jailbreak attacks, data leaks, and toxic content.
 
 ---
 
 ## Overview
 
-Checkmate is a **minimal one-probe scanner** designed to test LLM security using proven jailbreak techniques. It runs a single attack vector (DanInTheWild) with 64 different jailbreak prompts against your target LLM and generates comprehensive security reports.
+Checkmate tests LLM security using proven jailbreak techniques with **3 specialized detectors**:
+
+- 🛡️ **MitigationBypassDetector** - Detects successful jailbreak/prompt injection attacks
+- 🔐 **DataLeakDetector** - Flags API keys, credentials, PII in responses
+- ⚠️ **ToxicityDetector** - Identifies hate speech, threats, harmful content
 
 **Key Features:**
-- 🎯 **Focused** - One proven attack method (DanInTheWild jailbreaks)
-- 📊 **Professional Reports** - JSON and HTML output with risk scores
+- 🎯 **Focused** - Proven attack methods (DanInTheWild jailbreaks)
+- 📊 **Professional Reports** - JSON and HTML output with 0-100 risk scores
 - 🔌 **Easy Setup** - Works with local LLMs (LM Studio, Ollama, etc.)
-- 🧩 **Extensible** - Simple to add more attack methods later
+- 🧩 **Extensible** - Profile-based configuration (smoke_test, chatbot_basic)
 
 ---
 
-## Quick Start
+## Quick Start (10 minutes to first scan)
 
-### 1. Requirements
-
-- Python 3.9+
-- Local LLM server (LM Studio, Ollama, etc.) or OpenAI-compatible API
-
-### 2. Installation
+### 1. Install
 
 ```bash
-# Clone or download the project
+git clone https://github.com/your-org/checkmate-project.git
 cd checkmate-project
-
-# Install dependencies
 pip install -r requirements.txt
 ```
 
-### 3. Configure Your Target
+### 2. Configure
 
-Edit `examples/configs/smoke_test_deepseek.yaml`:
+```bash
+cp examples/configs/chatbot_basic.yaml my-config.yaml
+```
+
+Edit `my-config.yaml` - change the target URL and model:
 
 ```yaml
 target:
-  type: "http_local"
-  name: "my-llm"
   base_url: "http://localhost:1234"  # Your LLM server
   model_name: "your-model-name"
-
-profile:
-  preset: "smoke-test"
-
-campaign:
-  max_requests: 10
-  max_rps: 2
-  concurrent_requests: 1
-
-output:
-  run_id: "security-scan"
-  results_dir: "runs/security-scan"
 ```
 
-### 4. Run Security Scan
+### 3. Run
 
 ```bash
-python3 enterprise_checkmate.py run --config examples/configs/smoke_test_deepseek.yaml
+python3 enterprise_checkmate.py run --config my-config.yaml
 ```
 
-### 5. View Results
-
-Results are saved to the directory specified in your config (e.g., `runs/security-scan/`):
+### 4. View Results
 
 ```
-runs/security-scan/
-├── your-llm.report.jsonl   # Full interaction log
-├── summary.json             # Risk score and metadata
-├── findings.json            # Detected vulnerabilities
-└── report.html              # Executive summary (open in browser)
+runs/chatbot-security-scan/
+├── summary.json    # Risk score (0-100) and detection counts
+├── findings.json   # Detailed vulnerability findings
+└── report.html     # Visual executive summary
+```
+
+---
+
+## CLI Commands
+
+Checkmate provides a clean CLI for all operations:
+
+```bash
+# Run a security scan
+checkmate scan --config my-config.yaml
+
+# Validate a config file (friendly error messages)
+checkmate validate --config my-config.yaml
+
+# Run demo against vulnerable mock server
+checkmate demo
+
+# List available profiles
+checkmate list-presets
+
+# List probes or detectors
+checkmate list probes
+checkmate list detectors
+```
+
+### CI/CD Integration
+
+Use threshold flags for automated pipelines:
+
+```bash
+# Fail if risk score below 70 or more than 0 critical findings
+checkmate scan --config my-config.yaml --min-risk-score 70 --max-critical 0
+```
+
+### Demo Mode
+
+Try Checkmate without any setup:
+
+```bash
+checkmate demo
+```
+
+This starts an intentionally vulnerable mock server and runs a scan against it, demonstrating how Checkmate detects jailbreaks, data leaks, and more.
+
+---
+
+## Profiles
+
+| Profile | Probes | Detectors | Use Case |
+|---------|--------|-----------|----------|
+| **chatbot_basic** | Jailbreak + Prompt Injection | mitigation_bypass, data_leak, toxicity | Standard chatbot security |
+| **chatbot_quick** | Jailbreak + Injection (minimal) | mitigation_bypass, data_leak | ⚡ Fast dev scans |
+| **chatbot_full** | All chatbot probes | All chatbot detectors | 🔍 Deep pre-release scans |
+| smoke_test | Jailbreak only | mitigation_bypass only | Quick sanity check |
+| **agent_basic** | Agent Abuse probes | tool_abuse + leak detectors | LLM agents with tools |
+| **rag_basic** | RAG Injection probes | rag_consistency + leak detectors | RAG applications |
+
+### When to Use Each Profile
+
+- **chatbot_quick** — Use for every PR / dev loop. Fast, catches major issues.
+- **chatbot_full** — Use nightly or before release. Thorough, catches edge cases.
+- **agent_basic** — Use when your LLM can call tools/functions.
+- **rag_basic** — Use when your LLM uses retrieved documents.
+
+### Agent Testing (agent_basic)
+
+Tests for **agent/tool abuse** where LLMs can invoke external tools:
+
+```bash
+checkmate scan --config examples/configs/agent_basic_http_local.yaml
+```
+
+> **Note:** Requires adapter to populate `tool_calls`. See `checkmate/adapters/base.py`.
+
+### RAG Testing (rag_basic)
+
+Tests for **RAG vulnerabilities** including hallucinations:
+
+```bash
+checkmate scan --config examples/configs/rag_basic_http_local.yaml
+```
+
+> **Note:** Requires adapter to populate `retrieved_chunks`. See `checkmate/adapters/base.py`.
+
+---
+
+## Repository Structure
+
+```
+checkmate-project/
+├── checkmate/              # Core product code
+│   ├── detectors/          # Security detectors (mitigation, data_leak, toxicity)
+│   ├── probes/             # Attack probes (smoke_test, prompt_injection)
+│   ├── presets/            # Profile configurations
+│   ├── scoring/            # Risk score calculation
+│   └── reporting/          # HTML/JSON report generation
+├── tests/                  # Test suite
+├── examples/configs/       # Example configuration files
+└── legacy/                 # Archived/experimental code (not needed for scanner)
 ```
 
 ---
@@ -83,10 +167,40 @@ runs/security-scan/
 
 Checkmate assigns a **Risk Score from 0-100** (higher is better):
 
-- **95-100:** Excellent - Model resists jailbreak attempts
-- **90-94:** Good - Minor vulnerabilities detected
-- **80-89:** Fair - Moderate security concerns
-- **Below 80:** Poor - Significant vulnerabilities
+---
+
+## Repository Structure
+
+```
+checkmate-project/
+├── checkmate/              # Core product code
+│   ├── detectors/          # Security detectors (mitigation, data_leak, toxicity)
+│   ├── probes/             # Attack probes
+│   ├── presets/            # Profile configurations (smoke_test, chatbot_basic)
+│   ├── scoring/            # Risk score calculation
+│   └── reporting/          # HTML/JSON report generation
+├── tests/                  # Test suite
+├── examples/configs/       # Example configuration files
+└── legacy/                 # Archived/experimental code (not needed for scanner)
+```
+
+---
+
+## Understanding Results
+
+### Risk Score
+
+Checkmate assigns a **Risk Score from 0-100** (higher is better):
+
+- **90-100:** Excellent - Model resists attacks
+- **70-89:** Fair - Some vulnerabilities detected  
+- **Below 70:** Poor - Significant vulnerabilities
+
+### Detection Weights
+- **Critical:** 4 points
+- **High:** 3 points
+- **Medium:** 2 points
+- **Low:** 1 point
 
 ### Example Output
 

@@ -35,6 +35,18 @@ class OutputConfig(BaseModel):
     formats: List[str] = Field(default=["json", "html"], description="Output formats")
 
 
+class DatabaseConfig(BaseModel):
+    """Configuration for database storage.
+    
+    Example in YAML:
+        database:
+          enabled: true
+          url: postgresql://user:pass@host:5432/checkmate
+    """
+    enabled: bool = Field(default=False, description="Enable database storage")
+    url: Optional[str] = Field(default=None, description="Database connection URL")
+
+
 class SystemConfig(BaseModel):
     """System-level configuration."""
     parallel: bool = Field(default=False, description="Run probes in parallel")
@@ -49,6 +61,7 @@ class CheckmateConfig(BaseModel):
     probes: List[ProbeConfig] = Field(default_factory=list, description="Probes to run")
     detectors: List[DetectorConfig] = Field(default_factory=list, description="Detectors to use")
     output: OutputConfig = Field(default_factory=OutputConfig, description="Output settings")
+    database: DatabaseConfig = Field(default_factory=DatabaseConfig, description="Database settings")
     system: SystemConfig = Field(default_factory=SystemConfig, description="System settings")
     
     @classmethod

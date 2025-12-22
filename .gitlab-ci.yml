@@ -1,0 +1,125 @@
+# Checkmate LLM Security Scanner - GitLab CI Configuration
+# This pipeline runs Checkmate security scans against your LLM application
+# and fails the build if security thresholds are not met.
+
+stages:
+  - test
+  - security
+  - report
+
+variables:
+  # Override these in your GitLab CI/CD settings
+  LLM_ENDPOINT: ${LLM_ENDPOINT}
+  LLM_MODEL: ${LLM_MODEL}
+  LLM_API_KEY: ${LLM_API_KEY}
+  MIN_RISK_SCORE: "80"
+  MAX_CRITICAL: "0"
+
+# Cache pip dependencies
+.pip-cache: &pip-cache
+  cache:
+    key: pip-$CI_JOB_NAME
+    paths:
+      - .pip-cache/
+
+checkmate-scan:
+  stage: security
+  image: python:3.11-slim
+  <<: *pip-cache
+  
+  before_script:
+    - pip install --cache-dir=.pip-cache checkmate
+    # Or install from source:
+    # - pip install --cache-dir=.pip-cache -e .
+  
+  script:
+    # Create config file
+    - |
+      cat > checkmate-ci.yaml << EOF
+      target:
+        adapter: openai_compatible
+        endpoint: ${LLM_ENDPOINT}
+        model: ${LLM_MODEL}
+        api_key: ${LLM_API_KEY}
+      
+      probes:
+        - name: smoke_test
+          enabled: true
+        - name: prompt_injection
+          enabled: true
+        - name: data_exfil
+          enabled: true
+      
+      detectors:
+        - name: mitigation_bypass
+          enabled: true
+          threshold: 0.5
+        - name: data_leak
+          enabled: true
+          threshold: 0.5
+        - name: toxicity
+          enabled: true
+          threshold: 0.5
+      
+      output:
+        output_dir: ./checkmate-results
+        formats:
+          - json
+          - html
+      EOF
+    
+    # Run the scan
+    - |
+      checkmate scan \
+        --config checkmate-ci.yaml \
+        --profile gitlab-ci \
+        --min-risk-score ${MIN_RISK_SCORE} \
+        --max-critical ${MAX_CRITICAL}
+  
+  artifacts:
+    paths:
+      - checkmate-results/
+    reports:
+      # GitLab will parse this as a code quality report
+      codequality: checkmate-results/results.json
+    expire_in: 30 days
+    when: always
+  
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "web"  # Manual trigger
+
+# Optional: Scheduled security scan
+checkmate-scheduled:
+  extends: checkmate-scan
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  variables:
+    # More thorough scan for scheduled runs
+    MIN_RISK_SCORE: "70"
+
+# Generate badge for README
+generate-badge:
+  stage: report
+  needs:
+    - job: checkmate-scan
+      artifacts: true
+  image: python:3.11-alpine
+  script:
+    - |
+      python3 << 'EOF'
+      import json
+      with open('checkmate-results/results.json') as f:
+          results = json.load(f)
+      score = int((1 - results['summary']['risk_score']) * 100)
+      color = 'brightgreen' if score >= 80 else 'yellow' if score >= 50 else 'red'
+      print(f"CHECKMATE_SCORE={score}")
+      print(f"CHECKMATE_COLOR={color}")
+      EOF
+  artifacts:
+    reports:
+      dotenv: badge.env
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: on_success

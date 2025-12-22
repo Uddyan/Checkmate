@@ -127,33 +127,49 @@ def format_error(error: Exception, context: str = "") -> str:
     return f"❌ Error{' in ' + context if context else ''}: {error}"
 
 
-def run_campaign(config_path: Path, dry_run: bool = False) -> bool:
-    """Run a red-teaming campaign against an LLM target"""
+def run_campaign(config_path: Path, dry_run: bool = False, verbose: bool = False, quiet: bool = False) -> bool:
+    """Run a red-teaming campaign against an LLM target
     
-    console.print("\n[bold blue]🚀 Checkmate: Minimal LLM Security Scanner[/bold blue]")
-    console.print("=" * 60)
+    Args:
+        config_path: Path to config file
+        dry_run: If True, validate only without running
+        verbose: If True, show detailed probe/detector info
+        quiet: If True, show only final score and summary
+    """
+    
+    if not quiet:
+        console.print("\n[bold blue]🚀 Checkmate: LLM Security Scanner[/bold blue]")
+        console.print("=" * 60)
     
     # Load and validate config
-    console.print(f"📋 Loading config: [yellow]{config_path}[/yellow]")
+    if not quiet:
+        console.print(f"📋 Loading config: [yellow]{config_path}[/yellow]")
     try:
         pilot_config = load_pilot_config(config_path)
     except Exception as e:
         console.print(f"\n{format_error(e, 'config loading')}")
         return False
     
-    console.print(f"✅ Config loaded: [green]{pilot_config.target.name}[/green]")
-    console.print(f"   Target: {pilot_config.target.type}")
-    console.print(f"   Preset: {pilot_config.profile.preset}")
+    # Generate run_id early for tracking
+    run_id = pilot_config.output.get_run_id()
+    
+    if not quiet:
+        console.print(f"✅ Config loaded: [green]{pilot_config.target.name}[/green]")
+        console.print(f"   Run ID: [cyan]{run_id}[/cyan]")
+        console.print(f"   Target: {pilot_config.target.type}")
+        console.print(f"   Profile: {pilot_config.profile.preset}")
     
     # Run pre-flight checks
-    console.print("\n[bold]Running Pre-Flight Checks...[/bold]")
+    if not quiet:
+        console.print("\n[bold]Running Pre-Flight Checks...[/bold]")
     preflight_results = run_pre_flight_checks(pilot_config)
-    if not print_pre_flight_results(preflight_results):
+    if not print_pre_flight_results(preflight_results, quiet=quiet):
         console.print("[bold red]❌ Pre-flight checks failed. Please fix the issues above.[/bold red]")
         return False
     
     # Load preset
-    console.print(f"📦 Loading preset: [yellow]{pilot_config.profile.preset}[/yellow]")
+    if not quiet:
+        console.print(f"📦 Loading preset: [yellow]{pilot_config.profile.preset}[/yellow]")
     try:
         preset = load_preset(pilot_config.profile.preset)
         probe_names, detector_names = preset_to_plugin_names(
@@ -165,16 +181,19 @@ def run_campaign(config_path: Path, dry_run: bool = False) -> bool:
         console.print(f"\n{format_error(e, 'preset loading')}")
         return False
     
-    console.print(f"✅ Preset loaded: [green]{preset.description}[/green]")
-    console.print(f"   Probes: {len(probe_names)}")
-    console.print(f"   Detectors: {len(detector_names)}")
+    if not quiet:
+        console.print(f"✅ Preset loaded: [green]{preset.description}[/green]")
+        console.print(f"   Probes: {len(probe_names)}")
+        console.print(f"   Detectors: {len(detector_names)}")
     
-    # Special messaging for smoke test (minimal scanner)
-    if pilot_config.profile.preset == "smoke-test":
-        console.print(f"\n[bold green]🔬 MINIMAL ONE-PROBE SCANNER[/bold green]")
-        console.print(f"   Running [yellow]DanInTheWild[/yellow] jailbreak probe against:")
-        console.print(f"   {pilot_config.target.base_url}")
-        console.print(f"   Detector: [cyan]mitigation.MitigationBypass[/cyan]")
+    # Verbose mode: show probe details
+    if verbose:
+        console.print("\n[bold cyan]📋 Probe Details:[/bold cyan]")
+        for probe_name in probe_names:
+            console.print(f"   • {probe_name}")
+        console.print("[bold cyan]🔍 Detector Details:[/bold cyan]")
+        for det_name in detector_names:
+            console.print(f"   • {det_name}")
     
     # DRY RUN MODE
     if dry_run:
@@ -282,28 +301,37 @@ def run_campaign(config_path: Path, dry_run: bool = False) -> bool:
         # Still try to generate reports
     
     # End run (generates HTML report)
-    console.print("\n📊 Generating reports...")
+    if not quiet:
+        console.print("\n📊 Generating reports...")
     command.end_run()
     
     # Enhance with risk scoring and OWASP mapping
-    console.print("🎯 Calculating risk score...")
+    if not quiet:
+        console.print("🎯 Calculating risk score...")
+    summary_data = None
     try:
         from checkmate.scoring.risk_scorer import enhance_reports_with_scoring
         report_path = Path(_config.transient.report_filename)
         results_dir = report_path.parent
         
-        enhance_reports_with_scoring(
+        summary_data, _ = enhance_reports_with_scoring(
             report_jsonl_path=report_path,
             results_dir=results_dir,
-            preset=preset
+            preset=preset,
+            target_name=pilot_config.target.name,
+            target_url=pilot_config.target.base_url,
+            profile_name=pilot_config.profile.preset,
+            quiet=quiet
         )
-        console.print("✅ [green]Risk scoring complete[/green]")
+        if not quiet:
+            console.print("✅ [green]Risk scoring complete[/green]")
     except Exception as e:
         console.print(f"⚠️  {format_error(e, 'risk scoring')}")
         logging.exception(e)
     
     # Generate executive HTML report
-    console.print("📄 Generating executive HTML report...")
+    if not quiet:
+        console.print("📄 Generating executive HTML report...")
     try:
         from checkmate.reporting.renderer import render_html_report
         
@@ -313,26 +341,41 @@ def run_campaign(config_path: Path, dry_run: bool = False) -> bool:
         
         if summary_path.exists() and findings_path.exists():
             render_html_report(summary_path, findings_path, html_path)
-            console.print(f"   ✅ HTML report: [cyan]{html_path}[/cyan]")
+            if not quiet:
+                console.print(f"   ✅ HTML report: [cyan]{html_path}[/cyan]")
         else:
-            console.print("   ⚠️  JSON files not found, skipping HTML generation")
+            if not quiet:
+                console.print("   ⚠️  JSON files not found, skipping HTML generation")
     except Exception as e:
         console.print(f"   ⚠️  HTML generation failed: {e}")
         logging.error(f"HTML generation error: {e}", exc_info=True)
     
-    
+    # Final Summary - Always show this
     console.print("\n" + "=" * 60)
-    console.print("[bold green]✅ Campaign complete![/bold green]")
+    console.print("[bold green]✅ Checkmate Scan Complete[/bold green]")
+    console.print("=" * 60)
     
-    # Special completion message for smoke tests
-    if pilot_config.profile.preset == "smoke-test":
-        console.print("\n[bold green]🔬 Smoke Test Complete![/bold green]")
-        console.print(f"   Minimal one-probe test [green]PASSED[/green]")
-        console.print(f"   Outputs written to: [cyan]{pilot_config.output.results_dir}[/cyan]")
+    # Show run_id and risk score prominently
+    console.print(f"\n   [cyan]Run ID:[/cyan]     {run_id}")
+    if summary_data:
+        risk_score = summary_data.get('risk_score', 'N/A')
+        # Color code risk score
+        if isinstance(risk_score, (int, float)):
+            if risk_score >= 80:
+                score_color = "green"
+            elif risk_score >= 50:
+                score_color = "yellow"
+            else:
+                score_color = "red"
+            console.print(f"   [cyan]Risk Score:[/cyan]  [{score_color}]{risk_score:.1f}/100[/{score_color}]")
+        else:
+            console.print(f"   [cyan]Risk Score:[/cyan]  {risk_score}")
+        
+        total_detections = summary_data.get('total_detections', 0)
+        console.print(f"   [cyan]Detections:[/cyan]  {total_detections}")
     
-    console.print(f"📁 Results: {_config.reporting.report_dir}")
-    console.print(f"📄 JSONL: {_config.transient.report_filename}")
-    console.print(f"🌐 HTML: {_config.transient.report_filename.replace('.jsonl', '.html')}")
+    console.print(f"\n   [cyan]Results:[/cyan]    {results_dir}")
+    console.print(f"   [cyan]HTML:[/cyan]       {results_dir / 'report.html'}")
     console.print()
     
     return True
@@ -417,6 +460,16 @@ Examples:
         action="store_true",
         help="Validate config and show plan without executing"
     )
+    run_parser.add_argument(
+        "--verbose", "-v",
+        action="store_true",
+        help="Show detailed probe/detector info during execution"
+    )
+    run_parser.add_argument(
+        "--quiet", "-q",
+        action="store_true",
+        help="Show only final risk score and summary"
+    )
     
     # List command
     list_parser = subparsers.add_parser("list", help="List available components")
@@ -443,7 +496,12 @@ Examples:
     
     # Execute command
     if args.command == "run":
-        success = run_campaign(args.config, dry_run=args.dry_run)
+        success = run_campaign(
+            args.config, 
+            dry_run=args.dry_run,
+            verbose=getattr(args, 'verbose', False),
+            quiet=getattr(args, 'quiet', False)
+        )
         return 0 if success else 1
     
     elif args.command == "list":

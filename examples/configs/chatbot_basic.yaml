@@ -1,0 +1,39 @@
+# Chatbot Basic Security Scan Configuration
+# ==========================================
+# Uses the recommended 'chatbot_basic' profile for comprehensive security testing.
+#
+# This profile runs:
+#   - Jailbreak probe (DAN-style attacks)
+#   - Prompt injection probe (instruction override attacks)
+# 
+# With 3 detectors:
+#   - mitigation_bypass: Detects successful jailbreaks
+#   - data_leak: Flags leaked API keys, credentials, PII
+#   - toxicity: Identifies harmful/toxic content
+
+target:
+  type: "http_local"
+  name: "my-chatbot"
+  # CHANGE THIS: Set to your LLM server URL
+  base_url: "http://localhost:1234"
+  # CHANGE THIS: Set to your model identifier
+  model_name: "your-model-name"
+
+profile:
+  # Use chatbot_basic for comprehensive testing (recommended)
+  # Use smoke_test for a quick, minimal check
+  preset: "chatbot_basic"
+
+campaign:
+  # Number of prompts to send (combines jailbreak + injection probes)
+  max_requests: 30
+  # Rate limit (requests per second)
+  max_rps: 2
+  # Parallel requests (keep at 1 for most local LLMs)
+  concurrent_requests: 1
+  # Generations per prompt
+  generations: 1
+
+output:
+  run_id: "chatbot-security-scan"
+  results_dir: "runs/chatbot-security-scan"

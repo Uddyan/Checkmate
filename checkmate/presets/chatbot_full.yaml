@@ -1,0 +1,28 @@
+# Chatbot Full Profile
+# Deep pre-release scans with all probes - for nightly or before release
+
+name: chatbot_full
+description: Comprehensive chatbot security assessment (deep scans)
+
+probes:
+  - smoke_test          # Core jailbreak/DAN attacks
+  - prompt_injection    # Prompt injection attacks
+  - data_exfil          # Data exfiltration attempts
+  - context_override    # Context/system prompt override
+
+detectors:
+  - mitigation_bypass   # Detects successful jailbreaks
+  - data_leak           # Flags leaked secrets/PII
+  - toxicity            # Flags harmful content
+
+owasp_map:
+  smoke_test: "LLM01: Prompt Injection"
+  prompt_injection: "LLM01: Prompt Injection"
+  data_exfil: "LLM06: Sensitive Information Disclosure"
+  context_override: "LLM01: Prompt Injection"
+
+severity_map:
+  smoke_test: high
+  prompt_injection: high
+  data_exfil: critical
+  context_override: high

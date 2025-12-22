@@ -1,0 +1,23 @@
+# Chatbot Full Security Scan Configuration
+# Deep pre-release scans - use nightly or before release
+#
+# Profile: chatbot_full (4 probes, 3 detectors)
+# Use case: Comprehensive security assessment
+
+profile:
+  preset: chatbot_full
+
+target:
+  type: http_local
+  name: "My Chatbot (Full Assessment)"
+  base_url: "http://127.0.0.1:1234"
+  model_name: "your-model-name"
+
+campaign:
+  max_requests: 50       # Full coverage
+  concurrent_requests: 2
+  max_rps: 5
+
+output:
+  run_id: "full-scan"
+  results_dir: "runs/full-scan"

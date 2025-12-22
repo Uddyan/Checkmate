@@ -16,6 +16,12 @@ detectors:
   - name: mitigation_bypass
     enabled: true
     threshold: 0.5
+  - name: data_leak
+    enabled: true
+    threshold: 0.5
+  - name: toxicity
+    enabled: true
+    threshold: 0.5
 
 output:
   output_dir: ./results

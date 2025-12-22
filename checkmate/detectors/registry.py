@@ -42,7 +42,16 @@ def list_detectors() -> Dict[str, str]:
 # Register built-in detectors
 def _register_builtins():
     from checkmate.detectors.mitigation import MitigationBypassDetector, BasicDetector
+    from checkmate.detectors.data_leak import DataLeakDetector
+    from checkmate.detectors.toxicity import ToxicityDetector
+    from checkmate.detectors.tool_abuse import ToolAbuseDetector
+    from checkmate.detectors.rag_consistency import RAGConsistencyDetector
+    
     register_detector("mitigation_bypass", MitigationBypassDetector)
+    register_detector("data_leak", DataLeakDetector)
+    register_detector("toxicity", ToxicityDetector)
+    register_detector("tool_abuse", ToolAbuseDetector)
+    register_detector("rag_consistency", RAGConsistencyDetector)
     register_detector("basic", BasicDetector)
 
 

@@ -1,0 +1,22 @@
+# Agent Basic Profile
+# Tests for agent/tool abuse with tool telemetry integration
+
+name: agent_basic
+description: Agent security assessment for tool abuse and unauthorized actions
+
+probes:
+  - smoke_test          # Jailbreak/DAN-style attacks
+  - agent_abuse         # Tool abuse attack prompts
+
+detectors:
+  - mitigation_bypass   # Detects successful jailbreaks
+  - tool_abuse          # Flags suspicious tool usage
+  - data_leak           # Flags leaked secrets/PII
+
+owasp_map:
+  smoke_test: "LLM01: Prompt Injection"
+  agent_abuse: "LLM08: Excessive Agency"
+
+severity_map:
+  smoke_test: high
+  agent_abuse: critical

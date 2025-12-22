@@ -1,0 +1,25 @@
+# Chatbot Quick Profile
+# Fast dev scans with minimal probes - for every PR / dev loop
+
+name: chatbot_quick
+description: Quick chatbot security check (fast dev scans)
+
+probes:
+  - smoke_test          # Core jailbreak/DAN attacks
+  - prompt_injection    # Basic prompt injection
+
+detectors:
+  - mitigation_bypass   # Detects successful jailbreaks
+  - data_leak           # Flags leaked secrets/PII
+
+# Keep prompts low for fast iteration
+settings:
+  max_prompts_per_probe: 10
+
+owasp_map:
+  smoke_test: "LLM01: Prompt Injection"
+  prompt_injection: "LLM01: Prompt Injection"
+
+severity_map:
+  smoke_test: high
+  prompt_injection: high

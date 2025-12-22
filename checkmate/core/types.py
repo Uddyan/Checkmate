@@ -2,7 +2,47 @@
 
 from dataclasses import dataclass
 from typing import List, Dict, Any, Optional, Union
+from typing_extensions import TypedDict
 from enum import Enum
+
+
+# =============================================================================
+# Agent/Tool Testing Types
+# =============================================================================
+
+class ToolCall(TypedDict, total=False):
+    """Represents a tool/function call made by an agent.
+    
+    Used by adapters to report tool usage for agent abuse detection.
+    All fields except 'name' are optional.
+    
+    Example:
+        tool_call = ToolCall(
+            name="transfer_funds",
+            arguments={"amount": 1000, "to": "attacker"},
+            raw='{"name": "transfer_funds", "arguments": {"amount": 1000}}'
+        )
+    """
+    name: str  # Tool/function name (required)
+    arguments: Dict[str, Any]  # Parsed arguments
+    raw: Optional[str]  # Raw tool call text from model
+
+
+class RetrievedChunk(TypedDict, total=False):
+    """Represents a retrieved document chunk for RAG testing.
+    
+    Used by adapters to report retrieved context for RAG consistency detection.
+    
+    Example:
+        chunk = RetrievedChunk(
+            id="doc_123",
+            text="The company policy states...",
+            source="kb://policies/hr"
+        )
+    """
+    id: str  # Unique chunk identifier
+    text: str  # Chunk text content
+    source: Optional[str]  # Source reference (e.g., "kb://doc/123")
 
 
 class ProbeType(Enum):

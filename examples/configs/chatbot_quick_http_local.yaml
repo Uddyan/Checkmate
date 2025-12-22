@@ -1,0 +1,23 @@
+# Chatbot Quick Security Scan Configuration
+# Fast dev scans - use for every PR or dev loop
+#
+# Profile: chatbot_quick (2 probes, 2 detectors)
+# Use case: Quick sanity checks during development
+
+profile:
+  preset: chatbot_quick
+
+target:
+  type: http_local
+  name: "My Chatbot (Quick Check)"
+  base_url: "http://127.0.0.1:1234"
+  model_name: "your-model-name"
+
+campaign:
+  max_requests: 10       # Limited for speed
+  concurrent_requests: 1
+  max_rps: 5
+
+output:
+  run_id: "quick-scan"
+  results_dir: "runs/quick-scan"

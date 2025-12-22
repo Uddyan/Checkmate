@@ -1,0 +1,17 @@
+# Smoke Test Profile
+# Fast, minimal security test with single probe and detector
+
+name: smoke_test
+description: Fast smoke test with jailbreak probe and mitigation detector only
+
+probes:
+  - smoke_test          # Jailbreak/DAN-style attacks only
+
+detectors:
+  - mitigation_bypass   # Detects successful jailbreaks only
+
+owasp_map:
+  smoke_test: "LLM01: Prompt Injection"
+
+severity_map:
+  smoke_test: high

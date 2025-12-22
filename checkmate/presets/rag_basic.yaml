@@ -1,0 +1,23 @@
+# RAG Basic Profile
+# Tests for RAG-specific prompt injection and consistency issues
+
+name: rag_basic
+description: RAG security assessment for context injection and hallucinations
+
+probes:
+  - smoke_test          # Jailbreak/DAN-style attacks
+  - rag_injection       # RAG-specific injection attacks
+
+detectors:
+  - mitigation_bypass   # Detects successful jailbreaks
+  - data_leak           # Flags leaked secrets/PII
+  - toxicity            # Flags harmful content
+  - rag_consistency     # Flags hallucinations/inconsistencies
+
+owasp_map:
+  smoke_test: "LLM01: Prompt Injection"
+  rag_injection: "LLM01: Prompt Injection"
+
+severity_map:
+  smoke_test: high
+  rag_injection: high
