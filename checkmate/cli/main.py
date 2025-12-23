@@ -31,9 +31,21 @@ def setup_logging(verbosity: int = VERBOSITY_NORMAL) -> None:
         datefmt="%H:%M:%S",
     )
 
-
+# Entry point to scan 
 def main(args=None) -> int:
     """Main CLI entry point."""
+    # Fix Windows console encoding for emoji support
+    import sys
+    if sys.platform == "win32":
+        try:
+            sys.stdout.reconfigure(encoding='utf-8')
+            sys.stderr.reconfigure(encoding='utf-8')
+        except AttributeError:
+            # Python < 3.7
+            import codecs
+            sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+            sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
+    
     parser = argparse.ArgumentParser(
         prog="checkmate",
         description="Checkmate - LLM Red-Teaming Security Scanner",

@@ -39,3 +39,8 @@ runs/
 *.log
 .DS_Store
 checkpoints/
+
+# local specific ignores
+results/
+review_results_checkmate.md
+checkmate/examples/configs/smoke_test_config.yaml
